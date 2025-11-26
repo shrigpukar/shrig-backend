@@ -37,5 +37,5 @@ export class QueryOrderDto {
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
-  sortOrder: 'ASC' | 'DESC' = 'DESC';
+  sortOrder?: 'ASC' | 'DESC' = 'DESC';
 }
