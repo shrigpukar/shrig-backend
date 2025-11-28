@@ -123,7 +123,14 @@ export class WebsocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: DataPoint[],
   ) {
-    this.logger.log(data);
+    data = [
+      {
+        type: 'temperature',
+        value: 25.3,
+        metadata: { source: 'postman' },
+        timestamp: new Date('2025-11-28T07:55:22.349Z'),
+      },
+    ];
     if (!client.data.authenticated) {
       client.emit('error', { message: 'Authentication required' });
       return;

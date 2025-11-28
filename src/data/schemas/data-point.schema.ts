@@ -25,13 +25,13 @@ export class DataPoint {
   type: string;
 
   @Prop({
-    type: String,
+    type: Number,
     required: true,
     trim: true,
     maxlength: 100,
     index: true,
   })
-  value: String;
+  value: Number;
 
   @Prop({
     type: Object,
