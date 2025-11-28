@@ -13,13 +13,7 @@ import { Server, Socket } from 'socket.io';
 import { DataService } from 'src/data/data.service';
 import { DataPoint } from 'src/data/schemas/data-point.schema';
 
-@WebSocketGateway({
-  cors: {
-    origin: 'http://localhost:3000',
-    methods: ['GET', 'POST'],
-  },
-  transports: ['websocket', 'polling'],
-})
+@WebSocketGateway()
 export class WebsocketGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -129,6 +123,7 @@ export class WebsocketGateway
     @ConnectedSocket() client: Socket,
     @MessageBody() data: DataPoint[],
   ) {
+    this.logger.log(data);
     if (!client.data.authenticated) {
       client.emit('error', { message: 'Authentication required' });
       return;

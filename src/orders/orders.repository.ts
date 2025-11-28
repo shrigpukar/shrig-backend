@@ -14,7 +14,6 @@ export class OrderRepository {
   ) {}
 
   async findAll(query: QueryOrderDto) {
-    console.log(query);
     const {
       page = 1,
       limit = 20,
