@@ -9,9 +9,10 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { DataService } from './data.service';
-import { CreateDataPointDto } from './dto/create-data-point.dto';
-import { QueryDataDto } from './dto/query-data.dto';
+
+import { DataService } from 'src/data/services/data.service';
+import { CreateDataPointDto } from 'src/data/dtos/create-data-point.dto';
+import { QueryDataDto } from 'src/data/dtos/query-data.dto';
 
 @Controller('data')
 export class DataController {

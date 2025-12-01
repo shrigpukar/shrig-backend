@@ -10,7 +10,7 @@ import {
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { DataService } from 'src/data/data.service';
+import { DataService } from 'src/data/services/data.service';
 import { DataPoint } from 'src/data/schemas/data-point.schema';
 
 @WebSocketGateway()

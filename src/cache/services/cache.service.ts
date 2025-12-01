@@ -64,16 +64,11 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
   }
 
   async get<T>(key: string): Promise<T | null> {
-    try {
-      const cachedData = await this.redis.get(this.getKey(key));
-      if (cachedData) {
-        return JSON.parse(cachedData);
-      }
-      return null;
-    } catch (error) {
-      this.logger.error('Cache get error:', error);
-      return null;
+    const cachedData = await this.redis.get(this.getKey(key));
+    if (cachedData) {
+      return JSON.parse(cachedData);
     }
+    return null;
   }
 
   async set(
@@ -81,37 +76,22 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
     value: any,
     ttl: number = this.defaultTTL,
   ): Promise<boolean> {
-    try {
-      const serializedValue = JSON.stringify(value);
-      await this.redis.setEx(this.getKey(key), ttl, serializedValue);
-      return true;
-    } catch (error) {
-      this.logger.error('Cache set error:', error);
-      return false;
-    }
+    const serializedValue = JSON.stringify(value);
+    await this.redis.setEx(this.getKey(key), ttl, serializedValue);
+    return true;
   }
 
   async del(key: string): Promise<boolean> {
-    try {
-      await this.redis.del(this.getKey(key));
-      return true;
-    } catch (error) {
-      this.logger.error('Cache delete error:', error);
-      return false;
-    }
+    await this.redis.del(this.getKey(key));
+    return true;
   }
 
   async invalidatePattern(pattern: string): Promise<boolean> {
-    try {
-      const keys = await this.redis.keys(`${this.keyPrefix}${pattern}`);
-      if (keys.length > 0) {
-        await this.redis.del(keys);
-      }
-      return true;
-    } catch (error) {
-      this.logger.error('Cache invalidate pattern error:', error);
-      return false;
+    const keys = await this.redis.keys(`${this.keyPrefix}${pattern}`);
+    if (keys.length > 0) {
+      await this.redis.del(keys);
     }
+    return true;
   }
 
   // Multi-level caching: Memory + Redis
@@ -143,7 +123,6 @@ export class CacheService implements OnModuleInit, OnModuleDestroy {
       data: value,
       expiry: Date.now() + 60000, // 1 minute in memory
     });
-
     return await this.set(key, value, ttl);
   }
 }

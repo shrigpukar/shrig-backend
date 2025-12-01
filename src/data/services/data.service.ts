@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { DataRepository } from './data.repository';
-import { CreateDataPointDto } from './dto/create-data-point.dto';
-import { CacheService } from 'src/cache/cache.service';
-import { DataProcessorService } from 'src/jobs/data-processor.processor';
-import { QueryDataDto } from './dto/query-data.dto';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { DataRepository } from 'src/data/repositories/data.repository';
+import { CreateDataPointDto } from 'src/data/dtos/create-data-point.dto';
+import { CacheService } from 'src/cache/services/cache.service';
+import { DataProcessorService } from 'src/jobs/processors/data-processor.processor';
+import { QueryDataDto } from 'src/data/dtos/query-data.dto';
 
 @Injectable()
 export class DataService {
@@ -23,7 +23,7 @@ export class DataService {
 
   async ingestData(
     dataPoints: CreateDataPointDto[],
-  ): Promise<{ batch_id: string; queued: boolean }> {
+  ): Promise<{ batchId: string; queued: boolean }> {
     if (dataPoints.length === 0) {
       throw new Error('No data points provided');
     }
@@ -36,18 +36,26 @@ export class DataService {
       await this.invalidateDataCaches();
 
       return {
-        batch_id: `immediate_${Date.now()}`,
+        batchId: `immediate_${Date.now()}`,
         queued: false,
       };
     }
 
-    const batch_id = `batch_${Date.now()}_${Math.random()
+    const batchId = `batch_${Date.now()}_${Math.random()
       .toString(36)
       .substring(2, 9)}`;
-    await this.dataProcessorService.addDataProcessingJob(dataPoints, 1);
+    try {
+      await this.dataProcessorService.addDataProcessingJob(dataPoints, 1);
+    } catch (error) {
+      this.logger.error('Error adding data processing job:', error);
+      throw new HttpException(
+        'Failed to add data processing job',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
 
     return {
-      batch_id,
+      batchId,
       queued: true,
     };
   }
@@ -55,49 +63,73 @@ export class DataService {
   async getDataHistory(query: QueryDataDto) {
     const cacheKey = this.CACHE_KEY.DATA_HISTORY(JSON.stringify(query));
 
-    const cachedResult = await this.cacheService.get(cacheKey);
-    if (cachedResult) {
-      return cachedResult;
+    try {
+      const cachedResult = await this.cacheService.get(cacheKey);
+      if (cachedResult) {
+        return cachedResult;
+      }
+
+      const result = await this.dataRepository.findAll(query);
+
+      return result;
+    } catch (error) {
+      this.logger.error('Error getting data history:', error);
+      throw new HttpException(
+        'Failed to get data history',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const result = await this.dataRepository.findAll(query);
-
-    await this.cacheService.set(cacheKey, result, 120);
-
-    return result;
   }
 
   async getDataStats() {
     const cacheKey = this.CACHE_KEY.DATA_STATS;
 
-    const cachedStats = await this.cacheService.getMultiLevel(cacheKey);
-    if (cachedStats) {
-      return cachedStats;
+    try {
+      const cachedStats = await this.cacheService.getMultiLevel(cacheKey);
+      if (cachedStats) {
+        return cachedStats;
+      }
+
+      const stats = await this.dataRepository.getStats();
+
+      await this.cacheService.setMultiLevel(cacheKey, stats, 300);
+
+      return stats;
+    } catch (error) {
+      this.logger.error('Error getting data stats:', error);
+      throw new HttpException(
+        'Failed to get data stats',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const stats = await this.dataRepository.getStats();
-
-    await this.cacheService.setMultiLevel(cacheKey, stats, 300);
-
-    return stats;
   }
 
   async getRealtimeStats() {
     const cacheKey = this.CACHE_KEY.REALTIME_STATS;
 
-    const cachedStats = await this.cacheService.get(cacheKey);
-    if (cachedStats) {
-      return cachedStats;
+    try {
+      const cachedStats = await this.cacheService.get(cacheKey);
+      if (cachedStats) {
+        return cachedStats;
+      }
+
+      const stats = await this.dataRepository.getRealtimeStats(5);
+
+      await this.cacheService.set(cacheKey, stats, 30);
+
+      return stats;
+    } catch (error) {
+      this.logger.error('Error getting realtime stats:', error);
+      throw new HttpException(
+        'Failed to get realtime stats',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
-
-    const stats = await this.dataRepository.getRealtimeStats(5);
-
-    await this.cacheService.set(cacheKey, stats, 30);
-
-    return stats;
   }
 
-  async ingestHighThroughputData(dataStream): Promise<void> {
+  async ingestHighThroughputData(
+    dataStream: CreateDataPointDto[],
+  ): Promise<void> {
     const BATCH_SIZE = 1000;
     const batches: CreateDataPointDto[][] = [];
 
@@ -125,8 +157,8 @@ export class DataService {
     Array<{
       timestamp: Date;
       count: number;
-      avg_value: number;
-      sum_value: number;
+      avgValue: number;
+      sumValue: number;
     }>
   > {
     return this.dataRepository.aggregateData(
@@ -164,7 +196,10 @@ export class DataService {
       ]);
     } catch (error) {
       this.logger.error('Cache invalidation failed:', error);
-      throw error;
+      throw new HttpException(
+        'Failed to invalidate data caches',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

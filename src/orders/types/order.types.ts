@@ -1,14 +1,14 @@
 export interface Order {
   id: string;
-  customer_name: string;
-  customer_email: string;
-  product_name: string;
+  customerName: string;
+  customerEmail: string;
+  productName: string;
   quantity: number;
   price: number;
-  total_amount: number;
+  totalAmount: number;
   status: OrderStatus;
-  created_at: Date;
-  updated_at: Date;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export enum OrderStatus {
@@ -20,11 +20,11 @@ export enum OrderStatus {
 }
 
 export interface OrderStats {
-  total_orders: number;
-  total_revenue: number;
-  avg_order_value: number;
-  orders_by_status: Record<OrderStatus, number>;
-  daily_orders: Array<{
+  totalOrders: number;
+  totalRevenue: number;
+  avgOrderValue: number;
+  ordersByStatus: Record<OrderStatus, number>;
+  dailyOrders: Array<{
     date: string;
     count: number;
     revenue: number;

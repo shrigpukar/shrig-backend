@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { DataController } from './data.controller';
-import { DataService } from './data.service';
+import { DataController } from './controllers/data.controller';
+import { DataService } from './services/data.service';
+import { DataRepository } from './repositories/data.repository';
 import { MongooseModule } from '@nestjs/mongoose';
 import { DataPoint, DataPointSchema } from './schemas/data-point.schema';
 import { CacheModule } from 'src/cache/cache.module';
 import { JobsModule } from 'src/jobs/jobs.module';
-import { DataRepository } from './data.repository';
 
 @Module({
   imports: [

@@ -7,15 +7,15 @@ export interface DataPoint {
 }
 
 export interface DataStats {
-  total_points: number;
-  avg_value: number;
-  min_value: number;
-  max_value: number;
-  data_by_type: Record<string, number>;
+  totalPoints: number;
+  avgValue: number;
+  minValue: number;
+  maxValue: number;
+  dataByType: Record<string, number>;
 }
 
 export interface ProcessDataJob {
   data: DataPoint[];
-  batch_id: string;
+  batchId: string;
   priority: number;
 }

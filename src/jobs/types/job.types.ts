@@ -7,6 +7,6 @@ export interface DataPoint {
 
 export interface ProcessDataJob {
   data: DataPoint[];
-  batch_id: string;
+  batchId: string;
   priority: number;
 }

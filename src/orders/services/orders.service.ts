@@ -1,8 +1,16 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { QueryOrderDto } from './dto/query-order.dto';
-import { OrderRepository } from './orders.repository';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { CacheService } from 'src/cache/cache.service';
+import {
+  HttpStatus,
+  HttpException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { QueryOrderDto } from 'src/orders/dtos/query-order.dto';
+import { OrderRepository } from 'src/orders/repositories/orders.repository';
+import { CreateOrderDto } from 'src/orders/dtos/create-order.dto';
+
+import { CacheService } from 'src/cache/services/cache.service';
 
 @Injectable()
 export class OrdersService {
@@ -61,6 +69,7 @@ export class OrdersService {
 
     const cachedResult = await this.cacheService.get(cacheKey);
     if (cachedResult) {
+      this.logger.log('Orders search retrieved from cache');
       return cachedResult;
     }
 
@@ -100,8 +109,16 @@ export class OrdersService {
   }
 
   async getOrderStats() {
-    const stats = await this.orderRepository.getStats();
-    return stats;
+    try {
+      const stats = await this.orderRepository.getStats();
+      return stats;
+    } catch (error) {
+      this.logger.error('Error getting order stats:', error);
+      throw new HttpException(
+        'Failed to get order stats',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   async warmCache(): Promise<void> {
@@ -115,6 +132,10 @@ export class OrdersService {
       this.logger.log('Cache warming completed');
     } catch (error) {
       this.logger.error('Cache warming failed:', error);
+      throw new HttpException(
+        'Failed to warm cache',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -127,6 +148,10 @@ export class OrdersService {
       ]);
     } catch (error) {
       this.logger.error('Cache invalidation failed:', error);
+      throw new HttpException(
+        'Failed to invalidate order caches',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

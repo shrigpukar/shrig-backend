@@ -8,22 +8,22 @@ import {
   Min,
   MinLength,
 } from 'class-validator';
-import { OrderStatus } from '../types/order.types';
+import { OrderStatus } from 'src/orders/types/order.types';
 
 export class CreateOrderDto {
   @IsString()
   @MinLength(2)
   @MaxLength(255)
-  customer_name: string;
+  customerName: string;
 
   @IsEmail()
   @MaxLength(255)
-  customer_email: string;
+  customerEmail: string;
 
   @IsString()
   @MinLength(1)
   @MaxLength(255)
-  product_name: string;
+  productName: string;
 
   @IsNumber()
   @Min(1)

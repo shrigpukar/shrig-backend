@@ -6,7 +6,7 @@ import {
   Max,
   Min,
 } from 'class-validator';
-import { OrderStatus } from '../types/order.types';
+import { OrderStatus } from 'src/orders/types/order.types';
 import { Type } from 'class-transformer';
 
 export class QueryOrderDto {
@@ -33,7 +33,7 @@ export class QueryOrderDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: string = 'created_at';
+  sortBy?: string = 'createdAt';
 
   @IsOptional()
   @IsEnum(['ASC', 'DESC'])
